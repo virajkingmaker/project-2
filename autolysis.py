@@ -7,7 +7,7 @@ import seaborn as sns
 import os
 
 # Set up the API key and proxy URL
-openai.api_key = os.getenv("eyJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6IjIxZjMwMDAzMjhAZHMuc3R1ZHkuaWl0bS5hYy5pbiJ9.sdErABQZRIrLR5TaqR1lBDMgCsP2myC7MtqsanZbvQk")  # Secure setup (best practice)
+openai.api_key = os.getenv("eyJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6IjIxZjMwMDE2NTZAZHMuc3R1ZHkuaWl0bS5hYy5pbiJ9.65Ak3RcBLflFkPSsRTn7cqX3gKSZjqKeRr06YnRvrjg")  # Secure setup (best practice)
 openai.api_base = "https://aiproxy.sanand.workers.dev/openai/v1/chat/completions"
 
 # List of CSV files to process
