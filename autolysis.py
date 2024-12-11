@@ -1,7 +1,7 @@
 import os
 import sys
 import pandas as pd
-#import seaborn as sns
+import seaborn as sns
 import matplotlib.pyplot as plt
 import httpx
 import chardet
@@ -30,11 +30,11 @@ def analyze_data(df):
 
 def visualize_data(df):
     """Generate and save visualizations."""
-    #sns.set(style="whitegrid")
+    sns.set(style="whitegrid")
     numeric_columns = df.select_dtypes(include=['number']).columns
     for column in numeric_columns:
         plt.figure()
-        #sns.histplot(df[column].dropna(), kde=True)
+        sns.histplot(df[column].dropna(), kde=True)
         plt.title(f'Distribution of {column}')
         plt.savefig(f'{column}_distribution.png')
         plt.close()
