@@ -1,3 +1,13 @@
+# /// script
+# dependencies = [
+#   "seaborn",
+#   "matplotlib",
+#   "httpx",
+#   "chardet"
+# ]
+# ///
+
+
 import os
 import sys
 import pandas as pd
