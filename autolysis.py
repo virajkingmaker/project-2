@@ -38,16 +38,96 @@ def analyze_data(df):
     }
     return analysis
 
-def visualize_data(df):
-    """Generate and save visualizations."""
-    sns.set(style="whitegrid")
+def analyze_data(df):
+    """
+    Perform a detailed data analysis on the given DataFrame.
+    
+    Returns:
+        dict: A dictionary containing:
+            - 'summary': Descriptive statistics for all columns.
+            - 'missing_values': Count and percentage of missing values for each column.
+            - 'correlation': Correlation matrix for numeric columns.
+            - 'unique_values': Count of unique values for each categorical column.
+    """
+    if df.empty:
+        raise ValueError("The DataFrame is empty. Please provide valid data.")
+    
+    # Descriptive statistics
+    summary = df.describe(include='all', datetime_is_numeric=True).to_dict()
+    
+    # Missing values analysis
+    missing_values_count = df.isnull().sum()
+    missing_values_percent = (missing_values_count / len(df)) * 100
+    missing_values = {
+        "count": missing_values_count.to_dict(),
+        "percent": missing_values_percent.to_dict()
+    }
+    
+    # Correlation analysis
+    numeric_df = df.select_dtypes(include=['number'])
+    correlation = numeric_df.corr().to_dict() if not numeric_df.empty else {}
+    
+    # Unique values for categorical columns
+    categorical_df = df.select_dtypes(include=['object', 'category'])
+    unique_values = {col: df[col].nunique() for col in categorical_df.columns}
+    
+    # Consolidate analysis
+    analysis = {
+        "summary": summary,
+        "missing_values": missing_values,
+        "correlation": correlation,
+        "unique_values": unique_values
+    }
+    
+    return analysis
+
+def visualize_data(df, output_dir='visualizations'):
+    """
+    Generate and save histograms with KDE and boxplots for numeric columns in a DataFrame.
+    
+    Parameters:
+    - df (pd.DataFrame): The DataFrame containing the data to visualize.
+    - output_dir (str): Directory to save the visualizations. Default is 'visualizations'.
+    """
+    if df.empty:
+        raise ValueError("The input DataFrame is empty. Please provide a valid DataFrame.")
+    
+    # Create the output directory if it doesn't exist
+    os.makedirs(output_dir, exist_ok=True)
+    
+    sns.set(style="darkgrid")
+    sns.set_palette("muted")
     numeric_columns = df.select_dtypes(include=['number']).columns
+
     for column in numeric_columns:
-        plt.figure()
-        sns.histplot(df[column].dropna(), kde=True)
-        plt.title(f'Distribution of {column}')
-        plt.savefig(f'{column}_distribution.png')
+        data = df[column].dropna()
+        
+        # Create a figure with subplots
+        fig, axes = plt.subplots(1, 2, figsize=(12, 6))
+        
+        # Histogram with KDE and rug plot
+        sns.histplot(data, kde=True, ax=axes[0])
+        axes[0].set_title(f'Distribution of {column}')
+        axes[0].set_xlabel(column)
+        axes[0].set_ylabel('Frequency')
+        
+        # Boxplot
+        sns.boxplot(x=data, ax=axes[1], orient='h')
+        axes[1].set_title(f'Boxplot of {column}')
+        axes[1].set_xlabel(column)
+        
+        # Adjust layout
+        plt.tight_layout()
+        
+        # Safe file naming
+        safe_column_name = "".join(c if c.isalnum() else "_" for c in column)
+        file_path = os.path.join(output_dir, f'{safe_column_name}_visualizations.png')
+        
+        # Save the plot
+        plt.savefig(file_path)
         plt.close()
+
+    print(f"Visualizations saved in the directory: {output_dir}")
 
 def generate_narrative(analysis):
     """Generate narrative using LLM."""
@@ -55,7 +135,7 @@ def generate_narrative(analysis):
         'Authorization': f'Bearer {AIPROXY_TOKEN}',
         'Content-Type': 'application/json'
     }
-    prompt = f"Provide a detailed analysis based on the following data summary: {analysis}"
+    prompt = f"Offer a comprehensive analysis based on the data summary provided below: {analysis}"
     data = {
         "model": "gpt-4o-mini",
         "messages": [{"role": "user", "content": prompt}]
