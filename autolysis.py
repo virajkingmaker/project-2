@@ -53,7 +53,7 @@ def analyze_data(df):
         raise ValueError("The DataFrame is empty. Please provide valid data.")
     
     # Descriptive statistics
-    summary = df.describe(include='all', datetime_is_numeric=True).to_dict()
+    summary = df.describe(include='all').to_dict()
     
     # Missing values analysis
     missing_values_count = df.isnull().sum()
