@@ -96,6 +96,8 @@ def visualize_data(df, output_dir='visualizations'):
     sns.set_palette("muted")
     numeric_columns = df.select_dtypes(include=['number']).columns
 
+    image_files = []  # Track generated image files
+
     for column in numeric_columns:
         data = df[column].dropna()
 
@@ -122,17 +124,20 @@ def visualize_data(df, output_dir='visualizations'):
 
         # Save the plot
         plt.savefig(file_path)
+        image_files.append(file_path)
         plt.close()
 
     print(f"Visualizations saved in the directory: {output_dir}")
+    return image_files
 
 
-def generate_narrative(analysis):
+def generate_narrative(analysis, image_files):
     """
     Generate narrative using a language model based on analysis results.
 
     Parameters:
         analysis (dict): Analysis results.
+        image_files (list): List of paths to generated visualization images.
 
     Returns:
         str: Generated narrative or error message.
@@ -141,7 +146,11 @@ def generate_narrative(analysis):
         'Authorization': f'Bearer {AIPROXY_TOKEN}',
         'Content-Type': 'application/json'
     }
-    prompt = f"Offer a comprehensive analysis based on the data summary provided below: {analysis}"
+    image_list = "\n".join([f"- ![Visualization]({image})" for image in image_files])
+    prompt = (
+        f"Offer a comprehensive analysis based on the data summary provided below: {analysis}\n"
+        f"Include references to the following visualizations:\n{image_list}"
+    )
     data = {
         "model": "gpt-4o-mini",
         "messages": [{"role": "user", "content": prompt}]
@@ -181,8 +190,8 @@ def main(file_path):
     try:
         df = load_data(file_path)
         analysis = analyze_data(df)
-        visualize_data(df)
-        narrative = generate_narrative(analysis)
+        image_files = visualize_data(df)
+        narrative = generate_narrative(analysis, image_files)
         save_narrative(narrative)
         print("Pipeline completed successfully.")
     except Exception as e:
