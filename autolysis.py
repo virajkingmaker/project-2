@@ -14,6 +14,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import httpx
 import chardet
+from scipy.stats import skew, kurtosis
 
 # Constants
 API_URL = "https://aiproxy.sanand.workers.dev/openai/v1/chat/completions"
@@ -44,7 +45,7 @@ def analyze_data(df):
         df (pd.DataFrame): Input DataFrame.
 
     Returns:
-        dict: Analysis results including summary statistics, missing values, correlation, and unique values.
+        dict: Analysis results including summary statistics, missing values, correlation, skewness, and kurtosis.
     """
     if df.empty:
         raise ValueError("The DataFrame is empty. Please provide valid data.")
@@ -64,6 +65,10 @@ def analyze_data(df):
     numeric_df = df.select_dtypes(include=['number'])
     correlation = numeric_df.corr().to_dict() if not numeric_df.empty else {}
 
+    # Skewness and Kurtosis
+    skewness = numeric_df.apply(skew).to_dict() if not numeric_df.empty else {}
+    kurtosis_vals = numeric_df.apply(kurtosis).to_dict() if not numeric_df.empty else {}
+
     # Unique values for categorical columns
     categorical_df = df.select_dtypes(include=['object', 'category'])
     unique_values = {col: df[col].nunique() for col in categorical_df.columns}
@@ -72,6 +77,8 @@ def analyze_data(df):
         "summary": summary,
         "missing_values": missing_values,
         "correlation": correlation,
+        "skewness": skewness,
+        "kurtosis": kurtosis_vals,
         "unique_values": unique_values
     }
 
