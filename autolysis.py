@@ -19,9 +19,7 @@ from scipy.stats import skew, kurtosis, ttest_ind
 
 # Constants
 API_URL = "https://aiproxy.sanand.workers.dev/openai/v1/chat/completions"
-AIPROXY_TOKEN = (
-    "eyJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6IjIxZjMwMDE2NTZAZHMuc3R1ZHkuaWl0bS5hYy5pbiJ9.65Ak3RcBLflFkPSsRTn7cqX3gKSZjqKeRr06YnRvrjg"
-)
+AIPROXY_TOKEN = os.getenv("AIPROXY_TOKEN", "")
 
 def detect_encoding(file_path):
     """
@@ -201,6 +199,9 @@ def request_narrative(analysis, image_files):
     Returns:
         str: Generated narrative or error message.
     """
+    if not AIPROXY_TOKEN:
+        raise ValueError("AIPROXY_TOKEN is not set. Please configure it as an environment variable.")
+
     headers = {
         'Authorization': f'Bearer {AIPROXY_TOKEN}',
         'Content-Type': 'application/json'
