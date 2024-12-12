@@ -21,7 +21,6 @@ AIPROXY_TOKEN = (
     "eyJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6IjIxZjMwMDE2NTZAZHMuc3R1ZHkuaWl0bS5hYy5pbiJ9.65Ak3RcBLflFkPSsRTn7cqX3gKSZjqKeRr06YnRvrjg"
 )
 
-
 def load_data(file_path):
     """
     Load CSV data with encoding detection.
@@ -36,7 +35,6 @@ def load_data(file_path):
         result = chardet.detect(f.read())
     encoding = result['encoding']
     return pd.read_csv(file_path, encoding=encoding)
-
 
 def analyze_data(df):
     """
@@ -77,7 +75,6 @@ def analyze_data(df):
         "unique_values": unique_values
     }
 
-
 def visualize_data(df, output_dir='visualizations'):
     """
     Generate and save visualizations for numeric columns in a DataFrame.
@@ -85,18 +82,20 @@ def visualize_data(df, output_dir='visualizations'):
     Parameters:
         df (pd.DataFrame): The DataFrame containing the data to visualize.
         output_dir (str): Directory to save the visualizations. Default is 'visualizations'.
+
+    Returns:
+        list: List of file paths for the generated visualizations.
     """
     if df.empty:
         raise ValueError("The input DataFrame is empty. Please provide a valid DataFrame.")
 
-    # Create the output directory if it doesn't exist
     os.makedirs(output_dir, exist_ok=True)
 
     sns.set(style="darkgrid")
     sns.set_palette("muted")
     numeric_columns = df.select_dtypes(include=['number']).columns
 
-    image_files = []  # Track generated image files
+    image_files = []
 
     for column in numeric_columns:
         data = df[column].dropna()
@@ -129,7 +128,6 @@ def visualize_data(df, output_dir='visualizations'):
 
     print(f"Visualizations saved in the directory: {output_dir}")
     return image_files
-
 
 def generate_narrative(analysis, image_files):
     """
@@ -167,7 +165,6 @@ def generate_narrative(analysis, image_files):
         print(f"An unexpected error occurred: {e}")
     return "Narrative generation failed due to an error."
 
-
 def save_narrative(narrative, output_file='README.md'):
     """
     Save generated narrative to a file.
@@ -178,7 +175,6 @@ def save_narrative(narrative, output_file='README.md'):
     """
     with open(output_file, 'w') as f:
         f.write(narrative)
-
 
 def main(file_path):
     """
@@ -196,7 +192,6 @@ def main(file_path):
         print("Pipeline completed successfully.")
     except Exception as e:
         print(f"An error occurred: {e}")
-
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
