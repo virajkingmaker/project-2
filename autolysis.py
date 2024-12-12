@@ -3,7 +3,8 @@
 #   "seaborn",
 #   "matplotlib",
 #   "httpx",
-#   "chardet"
+#   "chardet",
+#   "scipy"
 # ]
 # ///
 
