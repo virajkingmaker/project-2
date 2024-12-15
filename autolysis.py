@@ -185,14 +185,14 @@ def request_narrative(analysis, image_files):
     }
     image_list = "\n".join([f"- ![Visualization]({image})" for image in image_files])
     prompt = (
-        f"Offer a comprehensive analysis based on the data summary provided below: {analysis}\n"
-        f"Include references to the following heat map visualizations:\n{image_list}"
-        f"Understand the data deeply. use the visuals provided for better understanding"
-        #f"Generate graphs in png format (like pi chart or histogram) apart from the one that is provided based on the data summary provided and include that in the report at relevent context."
-        f"Be consice and precice, concentrate on the insites (the intersting parts of the data analysis)"
-        f"Produce a report neatly, It shuld contain a understandabe structure (Headers and sub headings and so on)"
-        f"note down the implications of your findings (i.e. what to do with the insights)"
-        f"Include the Image (provided) too in the report and analyse the contents (at the relevent context)."
+    f"Offer a comprehensive analysis based on the data summary provided below: {analysis}\n"
+    f"Include references to the following heat map visualizations:\n{image_list}\n"
+    f"Analyze the content of each visualization to extract key insights directly from the images.\n"
+    f"Deeply understand the data by interpreting both the textual summary and the visuals provided.\n"
+    f"Be concise and precise, focusing on the most interesting and actionable parts of the data analysis.\n"
+    f"Produce a neatly structured report with clear headers, subheadings, and organized sections.\n"
+    f"Note down the implications of your findings (i.e., what actions should be taken based on the insights).\n"
+    f"Include and describe the visuals in the report at relevant contexts, analyzing their content thoroughly.\n"
     )
     data = {
         "model": "gpt-4o-mini",
