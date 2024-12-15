@@ -155,7 +155,7 @@ def generate_visualizations(df, output_dir='visualizations'):
 
     # Plot the heatmap
     plt.figure(figsize=(6, 6))  # Small size for compact output
-    sns.heatmap(correlation_matrix, annot=True, fmt=".2f", cmap='coolwarm', cbar=True)
+    sns.heatmap(correlation_matrix, annot=False, fmt=".2f", cmap='coolwarm', cbar=True)
     plt.title('Heatmap of Numeric Columns Correlation')
     plt.tight_layout()
 
@@ -188,11 +188,11 @@ def request_narrative(analysis, image_files):
         f"Offer a comprehensive analysis based on the data summary provided below: {analysis}\n"
         f"Include references to the following heat map visualizations:\n{image_list}"
         f"Understand the data deeply. use the visuals provided for better understanding"
-        f"Generate graphs in png format (like pi chart or histogram) apart from the one that is provided based on the data summary provided and include that in the report at relevent context."
+        #f"Generate graphs in png format (like pi chart or histogram) apart from the one that is provided based on the data summary provided and include that in the report at relevent context."
         f"Be consice and precice, concentrate on the insites (the intersting parts of the data analysis)"
         f"Produce a report neatly, It shuld contain a understandabe structure (Headers and sub headings and so on)"
         f"note down the implications of your findings (i.e. what to do with the insights)"
-        f"Include the Image (provided) too in the report (at the relevent context)."
+        f"Include the Image (provided) too in the report and analyse the contents (at the relevent context)."
     )
     data = {
         "model": "gpt-4o-mini",
