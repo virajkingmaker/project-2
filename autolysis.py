@@ -15,7 +15,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import httpx
 import chardet
-from scipy.stats import skew, kurtosis, ttest_ind
+from scipy.stats import skew, kurtosis
 
 # Constants
 API_URL = "https://aiproxy.sanand.workers.dev/openai/v1/chat/completions"
@@ -72,7 +72,7 @@ def perform_analysis(df):
         df (pd.DataFrame): Input DataFrame.
 
     Returns:
-        dict: Analysis results including summary statistics, missing values, correlation, skewness, kurtosis, variance, and hypothesis testing.
+        dict: Analysis results including summary statistics, missing values, correlation, skewness, and kurtosis.
     """
     if df.empty:
         raise ValueError("The DataFrame is empty. Please provide valid data.")
@@ -92,140 +92,87 @@ def perform_analysis(df):
     numeric_df = df.select_dtypes(include=['number'])
     correlation = numeric_df.corr().to_dict() if not numeric_df.empty else {}
 
-    # Variance and Standard Deviation
-    variance = numeric_df.var().to_dict() if not numeric_df.empty else {}
-    std_dev = numeric_df.std().to_dict() if not numeric_df.empty else {}
-
     # Skewness and Kurtosis
     skewness = numeric_df.apply(skew).to_dict() if not numeric_df.empty else {}
     kurtosis_vals = numeric_df.apply(kurtosis).to_dict() if not numeric_df.empty else {}
-
-    # Hypothesis Testing (Example: T-tests between numeric columns if applicable)
-    hypothesis_tests = {}
-    numeric_columns = numeric_df.columns
-    if len(numeric_columns) > 1:
-        for i in range(len(numeric_columns)):
-            for j in range(i + 1, len(numeric_columns)):
-                col1, col2 = numeric_columns[i], numeric_columns[j]
-                t_stat, p_val = ttest_ind(df[col1].dropna(), df[col2].dropna())
-                hypothesis_tests[f"{col1} vs {col2}"] = {"t_stat": t_stat, "p_val": p_val}
-
-    # Unique values for categorical columns
-    categorical_df = df.select_dtypes(include=['object', 'category'])
-    unique_values = {col: df[col].nunique() for col in categorical_df.columns}
 
     return {
         "summary": summary,
         "missing_values": missing_values,
         "correlation": correlation,
-        "variance": variance,
-        "std_dev": std_dev,
         "skewness": skewness,
-        "kurtosis": kurtosis_vals,
-        "hypothesis_tests": hypothesis_tests,
-        "unique_values": unique_values
+        "kurtosis": kurtosis_vals
     }
 
-def generate_visualizations(df, output_dir='visualizations'):
+def generate_visualization(df, output_file='visualization.png'):
     """
-    Generate and save visualizations for numeric columns in a DataFrame.
+    Generate and save a single visualization for numeric columns in a DataFrame.
 
     Parameters:
         df (pd.DataFrame): The DataFrame containing the data to visualize.
-        output_dir (str): Directory to save the visualizations. Default is 'visualizations'.
+        output_file (str): Path to save the visualization. Default is 'visualization.png'.
 
     Returns:
-        list: List of file paths for the generated visualizations.
+        str: File path of the generated visualization.
     """
     if df.empty:
         raise ValueError("The input DataFrame is empty. Please provide a valid DataFrame.")
-
-    os.makedirs(output_dir, exist_ok=True)
 
     sns.set(style="darkgrid")
     sns.set_palette("muted")
     numeric_columns = df.select_dtypes(include=['number']).columns
 
-    image_files = []
+    if numeric_columns.empty:
+        raise ValueError("No numeric columns found for visualization.")
 
-    for column in numeric_columns:
-        data = df[column].dropna()
+    # Select the first numeric column for visualization
+    column = numeric_columns[0]
+    data = df[column].dropna()
 
-        # Create a figure with subplots
-        fig, axes = plt.subplots(1, 2, figsize=(12, 6))
+    # Create a single figure
+    plt.figure(figsize=(8, 6))
+    sns.histplot(data, kde=True)
+    plt.title(f'Distribution of {column}')
+    plt.xlabel(column)
+    plt.ylabel('Frequency')
 
-        # Histogram with KDE and rug plot
-        sns.histplot(data, kde=True, ax=axes[0])
-        axes[0].set_title(f'Distribution of {column}')
-        axes[0].set_xlabel(column)
-        axes[0].set_ylabel('Frequency')
+    # Save the plot
+    plt.tight_layout()
+    plt.savefig(output_file)
+    plt.close()
 
-        # Boxplot
-        sns.boxplot(x=data, ax=axes[1], orient='h')
-        axes[1].set_title(f'Boxplot of {column}')
-        axes[1].set_xlabel(column)
+    print(f"Visualization saved as: {output_file}")
+    return output_file
 
-        # Adjust layout
-        plt.tight_layout()
-
-        # Safe file naming
-        safe_column_name = "".join(c if c.isalnum() else "_" for c in column)
-        file_path = os.path.join(output_dir, f'{safe_column_name}_visualizations.png')
-
-        # Save the plot
-        plt.savefig(file_path)
-        image_files.append(file_path)
-        plt.close()
-
-    # Generate pair plot for correlation analysis
-    if len(numeric_columns) > 1:
-        pair_plot_file = os.path.join(output_dir, 'pair_plot.png')
-        sns.pairplot(df[numeric_columns].dropna())
-        plt.savefig(pair_plot_file)
-        image_files.append(pair_plot_file)
-        plt.close()
-
-    print(f"Visualizations saved in the directory: {output_dir}")
-    return image_files
-
-def request_narrative(analysis, image_files):
+def request_narrative(analysis, visualization_file):
     """
-    Generate narrative using a language model based on analysis results.
+    Request a narrative based on analysis results and visualization.
 
     Parameters:
         analysis (dict): Analysis results.
-        image_files (list): List of paths to generated visualization images.
+        visualization_file (str): Path to the visualization file.
 
     Returns:
-        str: Generated narrative or error message.
+        str: Generated narrative.
     """
-    if not AIPROXY_TOKEN:
-        raise ValueError("AIPROXY_TOKEN is not set. Please configure it as an environment variable.")
+    summary = analysis.get("summary", {})
+    missing_values = analysis.get("missing_values", {})
+    correlation = analysis.get("correlation", {})
+    skewness = analysis.get("skewness", {})
+    kurtosis_vals = analysis.get("kurtosis", {})
 
-    headers = {
-        'Authorization': f'Bearer {AIPROXY_TOKEN}',
-        'Content-Type': 'application/json'
-    }
-    image_list = "\n".join([f"- ![Visualization]({image})" for image in image_files])
-    prompt = (
-        f"Offer a comprehensive analysis based on the data summary provided below: {analysis}\n"
-        f"Include references to the following visualizations:\n{image_list}"
+    dynamic_prompt = (
+        f"You are a data analyst. Generate a concise report for the dataset with the following details:\n"
+        f"Summary statistics: {summary}\n"
+        f"Missing values: {missing_values}\n"
+        f"Correlation matrix: {correlation}\n"
+        f"Skewness: {skewness}\n"
+        f"Kurtosis: {kurtosis_vals}\n"
+        f"Also include a note that the visualization can be found at {visualization_file}."
+        f"The report should have clear structure and must be neatly written."
     )
-    data = {
-        "model": "gpt-4o-mini",
-        "messages": [{"role": "user", "content": prompt}]
-    }
-    try:
-        response = httpx.post(API_URL, headers=headers, json=data, timeout=30.0)
-        response.raise_for_status()
-        return response.json()['choices'][0]['message']['content']
-    except httpx.HTTPStatusError as e:
-        print(f"HTTP error occurred: {e}")
-    except httpx.RequestError as e:
-        print(f"Request error occurred: {e}")
-    except Exception as e:
-        print(f"An unexpected error occurred: {e}")
-    return "Narrative generation failed due to an error."
+
+    return dynamic_prompt
 
 def save_narrative_to_file(narrative, output_file='README.md'):
     """
@@ -253,13 +200,13 @@ def main_pipeline(file_path):
         print("Step 2: Performing data analysis...")
         analysis = perform_analysis(df)
 
-        print("Step 3: Generating visualizations...")
-        image_files = generate_visualizations(df)
+        print("Step 3: Generating visualization...")
+        visualization_file = generate_visualization(df)
 
         print("Step 4: Generating narrative...")
-        narrative = request_narrative(analysis, image_files)
+        narrative = request_narrative(analysis, visualization_file)
 
-        print("Step 5: Saving narrative to file...")
+        print("Step 5: Saving narrative...")
         save_narrative_to_file(narrative)
 
         print("Pipeline completed successfully.")
