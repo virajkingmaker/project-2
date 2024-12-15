@@ -187,8 +187,10 @@ def request_narrative(analysis, image_files):
     prompt = (
         f"Offer a comprehensive analysis based on the data summary provided below: {analysis}\n"
         f"Include references to the following heat map visualizations:\n{image_list}"
-        f"Understand the data deeply."
+        f"Understand the data deeply. use the visuals provided for better understanding"
+        f"Be consice and precice, concentrate on the insites (the intersting parts of the data analysis)"
         f"Produce a report neatly, It shuld contain a understandabe structure (Headers and sub headings and so on)"
+        f"note down the implications of your findings (i.e. what to do with the insights)"
         f"Include the Image in the report."
     )
     data = {
