@@ -168,7 +168,10 @@ def request_narrative(analysis, visualization_file):
         f"Correlation matrix: {correlation}\n"
         f"Skewness: {skewness}\n"
         f"Kurtosis: {kurtosis_vals}\n"
+        f"Use the images to better understand the data."
         f"Also include a note that the visualization can be found at {visualization_file}."
+        f"Analyse the images and dynamically produce a report."
+        f"understand the data to it's depths."
         f"The report should have clear structure and must be neatly written."
     )
 
